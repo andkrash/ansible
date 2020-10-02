@@ -1,0 +1,43 @@
+---
+- name: install apache
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Check OS 
+    debug: var=ansible_os_family
+
+  - block: #==Bkock for Debian==  
+
+     - name: install apache Debian
+       apt: name=apache2 state=latest
+    
+     - name: start apache Debian
+       service: name=apache2 state=started enabled=yes
+       notify: Restart Apache Debian
+    
+    when: ansible_os_family == "Debian"
+
+  - block: #==Block for RedHat==
+
+     - name: install apache RedHat
+       yum:  name=httpd state=latest
+   
+     - name: start apache
+       service: name=httpd state=started enabled=yes
+       notify: Restart Apache RedHat
+ 
+    when: ansible_os_family == "RedHat"
+
+  - shell: uptime
+    register: results
+
+  - debug:
+      var: results
+  
+  handlers:
+  - name: Restart Apache RedHat
+    service: name=httpd state=restarted
+
+  - name: Restart Apach Debian
+    service: name=apache2 state=restarted
